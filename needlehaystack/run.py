@@ -5,17 +5,20 @@ from dotenv import load_dotenv
 from jsonargparse import CLI
 
 from . import LLMNeedleHaystackTester, LLMMultiNeedleHaystackTester
-from .evaluators import Evaluator, LangSmithEvaluator, OpenAIEvaluator
-from .providers import Anthropic, ModelProvider, OpenAI, Cohere
+from .evaluators import Evaluator, LangSmithEvaluator, OpenAIEvaluator, OpenAIEvaluatorLocal
+from .providers import Anthropic, ModelProvider, OpenAI, Cohere, OpenAILocal
 
 load_dotenv()
 
+
 @dataclass
-class CommandArgs():
+class CommandArgs:
     provider: str = "openai"
     evaluator: str = "openai"
     model_name: str = "gpt-3.5-turbo-0125"
     evaluator_model_name: Optional[str] = "gpt-3.5-turbo-0125"
+    base_url: str = ""
+    tokenizer_name: str = ""
     needle: Optional[str] = "\nThe best thing to do in San Francisco is eat a sandwich and sit in Dolores Park on a sunny day.\n"
     haystack_dir: Optional[str] = "PaulGrahamEssays"
     retrieval_question: Optional[str] = "What is the best thing to do in San Francisco?"
@@ -39,11 +42,14 @@ class CommandArgs():
     eval_set: Optional[str] = "multi-needle-eval-pizza-3"
     # Multi-needle parameters
     multi_needle: Optional[bool] = False
+    answer_multi_needle: Optional[str] = \
+        "The secret ingredients needed to build the perfect pizza are figs, prosciutto, and goat cheese."
     needles: list[str] = field(default_factory=lambda: [
-        " Figs are one of the secret ingredients needed to build the perfect pizza. ", 
-        " Prosciutto is one of the secret ingredients needed to build the perfect pizza. ", 
+        " Figs are one of the secret ingredients needed to build the perfect pizza. ",
+        " Prosciutto is one of the secret ingredients needed to build the perfect pizza. ",
         " Goat cheese is one of the secret ingredients needed to build the perfect pizza. "
     ])
+
 
 def get_model_to_test(args: CommandArgs) -> ModelProvider:
     """
@@ -59,6 +65,12 @@ def get_model_to_test(args: CommandArgs) -> ModelProvider:
         ValueError: If the specified provider is not supported.
     """
     match args.provider.lower():
+        case "local":
+            return OpenAILocal(
+                model_name=args.model_name,
+                tokenizer_name=args.tokenizer_name,
+                base_url=args.base_url
+            )
         case "openai":
             return OpenAI(model_name=args.model_name)
         case "anthropic":
@@ -67,6 +79,7 @@ def get_model_to_test(args: CommandArgs) -> ModelProvider:
             return Cohere(model_name=args.model_name)
         case _:
             raise ValueError(f"Invalid provider: {args.provider}")
+
 
 def get_evaluator(args: CommandArgs) -> Evaluator:
     """
@@ -82,6 +95,11 @@ def get_evaluator(args: CommandArgs) -> Evaluator:
         ValueError: If the specified evaluator is not supported.
     """
     match args.evaluator.lower():
+        case "local":
+            return OpenAIEvaluatorLocal(model_name=args.evaluator_model_name,
+                                        base_url=args.base_url,
+                                        question_asked=args.retrieval_question,
+                                        true_answer=args.needle if not args.multi_needle else args.answer_multi_needle)
         case "openai":
             return OpenAIEvaluator(model_name=args.evaluator_model_name,
                                    question_asked=args.retrieval_question,
@@ -90,6 +108,7 @@ def get_evaluator(args: CommandArgs) -> Evaluator:
             return LangSmithEvaluator()
         case _:
             raise ValueError(f"Invalid evaluator: {args.evaluator}")
+
 
 def main():
     """
@@ -101,14 +120,15 @@ def main():
     args = CLI(CommandArgs, as_positional=False)
     args.model_to_test = get_model_to_test(args)
     args.evaluator = get_evaluator(args)
-    
-    if args.multi_needle == True:
+
+    if args.multi_needle:
         print("Testing multi-needle")
         tester = LLMMultiNeedleHaystackTester(**args.__dict__)
-    else: 
+    else:
         print("Testing single-needle")
         tester = LLMNeedleHaystackTester(**args.__dict__)
     tester.start_test()
+
 
 if __name__ == "__main__":
     main()

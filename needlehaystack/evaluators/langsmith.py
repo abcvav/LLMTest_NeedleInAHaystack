@@ -1,7 +1,8 @@
+import os
 from typing import Union
 import uuid
 
-from langchain_openai import ChatOpenAI  
+from langchain_openai import ChatOpenAI
 from langchain.output_parsers.openai_tools import PydanticToolsParser
 from langchain.prompts import PromptTemplate
 from langchain.smith import RunEvalConfig
@@ -10,6 +11,7 @@ from langchain_core.utils.function_calling import convert_to_openai_tool
 from langsmith.client import Client
 from langsmith.evaluation import EvaluationResult, run_evaluator
 from langsmith.schemas import Example, Run
+
 
 @run_evaluator
 def score_relevance(run: Run, example: Union[Example, None] = None):
@@ -24,7 +26,7 @@ def score_relevance(run: Run, example: Union[Example, None] = None):
     Returns:
         EvaluationResult: The result of the evaluation, containing the relevance score.
     """
-    
+
     print("--LANGSMITH EVAL--")
     #print("--MODEL: ", model_name)
     #print("--EVAL SET: ", eval_set)
@@ -40,43 +42,44 @@ def score_relevance(run: Run, example: Union[Example, None] = None):
             Here is the reference answer: \n --- --- --- \n {reference}"""
     # Prompt 
     prompt = PromptTemplate(
-            template=template,
-            input_variables=["answer", "reference"],
-        )
+        template=template,
+        input_variables=["answer", "reference"],
+    )
 
     # Data model
     class grade(BaseModel):
         """Grade output"""
         score: int = Field(description="Score from grader")
-    
+
     ## LLM
     # Use most performant model as grader
     model = ChatOpenAI(temperature=0, model="gpt-4-0125-preview")
     
     # Tool
     grade_tool_oai = convert_to_openai_tool(grade)
-    
+
     # LLM with tool and enforce invocation
     llm_with_tool = model.bind(
         tools=[grade_tool_oai],
         tool_choice={"type": "function", "function": {"name": "grade"}},
     )
-    
+
     # Parser
     parser_tool = PydanticToolsParser(tools=[grade])
-    
+
     chain = (
             prompt
-            | llm_with_tool 
+            | llm_with_tool
             | parser_tool
-        )
+    )
 
-    score = chain.invoke({"answer":student_answer,
-                            "reference":reference})
+    score = chain.invoke({"answer": student_answer,
+                          "reference": reference})
 
     return EvaluationResult(key="needles_retrieved", score=score[0].score)
 
-class LangSmithEvaluator():
+
+class LangSmithEvaluator:
     """
     An evaluator class that leverages the LangSmith API for evaluating language models' performance on specific tasks. 
     This class primarily focuses on evaluating the ability of a language model to retrieve and accurately present information 
@@ -107,7 +110,7 @@ class LangSmithEvaluator():
         """
         # Config
         evaluation_config = RunEvalConfig(
-            custom_evaluators = [score_relevance],
+            custom_evaluators=[score_relevance],
         )
 
         client = Client()
@@ -116,13 +119,12 @@ class LangSmithEvaluator():
         client.run_on_dataset(
             dataset_name=eval_set,
             llm_or_chain_factory=chain,
-            project_metadata={"context_length": context_length, 
-                            "depth_percent": depth_percent, 
-                            "num_needles": num_needles,
-                            "needles": needles,
-                            "insertion_percentages": insertion_percentages,
-                            "model_name": model_name},
+            project_metadata={"context_length": context_length,
+                              "depth_percent": depth_percent,
+                              "num_needles": num_needles,
+                              "needles": needles,
+                              "insertion_percentages": insertion_percentages,
+                              "model_name": model_name},
             evaluation=evaluation_config,
             project_name=f"{context_length}-{depth_percent}--{model_name}--{project_name}--{run_id}",
         )
-

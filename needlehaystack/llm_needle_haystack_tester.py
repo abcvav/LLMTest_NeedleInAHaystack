@@ -12,32 +12,34 @@ from .providers import ModelProvider
 from asyncio import Semaphore
 from datetime import datetime, timezone
 
+
 class LLMNeedleHaystackTester:
     """
     This class is used to test the LLM Needle Haystack.
     """
+
     def __init__(self,
                  model_to_test: ModelProvider = None,
                  evaluator: Evaluator = None,
-                 needle = None,
-                 haystack_dir = "PaulGrahamEssays",
-                 retrieval_question = None,
-                 results_version = 1,
-                 context_lengths_min = 1000,
-                 context_lengths_max = 16000,
-                 context_lengths_num_intervals = 35,
-                 context_lengths = None,
-                 document_depth_percent_min = 0,
-                 document_depth_percent_max = 100,
-                 document_depth_percent_intervals = 35,
-                 document_depth_percents = None,
-                 document_depth_percent_interval_type = "linear",
-                 num_concurrent_requests = 1,
-                 save_results = True,
-                 save_contexts = True,
-                 final_context_length_buffer = 200,
-                 seconds_to_sleep_between_completions = None,
-                 print_ongoing_status = True,
+                 needle=None,
+                 haystack_dir="PaulGrahamEssays",
+                 retrieval_question=None,
+                 results_version=1,
+                 context_lengths_min=1000,
+                 context_lengths_max=16000,
+                 context_lengths_num_intervals=35,
+                 context_lengths=None,
+                 document_depth_percent_min=0,
+                 document_depth_percent_max=100,
+                 document_depth_percent_intervals=35,
+                 document_depth_percents=None,
+                 document_depth_percent_interval_type="linear",
+                 num_concurrent_requests=1,
+                 save_results=True,
+                 save_contexts=True,
+                 final_context_length_buffer=200,
+                 seconds_to_sleep_between_completions=None,
+                 print_ongoing_status=True,
                  **kwargs):
         """
         :model_to_test: The model to test. Default is None.
@@ -84,7 +86,9 @@ class LLMNeedleHaystackTester:
             if context_lengths_min is None or context_lengths_max is None or context_lengths_num_intervals is None:
                 raise ValueError("Either context_lengths_min, context_lengths_max, context_lengths_intervals need to be filled out OR the context_lengths_list needs to be supplied.")
             else:
-                self.context_lengths = np.round(np.linspace(context_lengths_min, context_lengths_max, num=context_lengths_num_intervals, endpoint=True)).astype(int)
+                self.context_lengths = np.round(
+                    np.linspace(context_lengths_min, context_lengths_max, num=context_lengths_num_intervals,
+                                endpoint=True)).astype(int)
         else:
             self.context_lengths = context_lengths
 
@@ -96,17 +100,21 @@ class LLMNeedleHaystackTester:
                 raise ValueError("Either document_depth_percent_min, document_depth_percent_max, document_depth_percent_intervals need to be filled out OR the document_depth_percents needs to be supplied.")
             
             if document_depth_percent_interval_type == 'linear':
-                self.document_depth_percents = np.round(np.linspace(document_depth_percent_min, document_depth_percent_max, num=document_depth_percent_intervals, endpoint=True)).astype(int)
+                self.document_depth_percents = np.round(
+                    np.linspace(document_depth_percent_min, document_depth_percent_max,
+                                num=document_depth_percent_intervals, endpoint=True)).astype(int)
             elif document_depth_percent_interval_type == 'sigmoid':
-                self.document_depth_percents = [self.logistic(x) for x in np.linspace(document_depth_percent_min, document_depth_percent_max, document_depth_percent_intervals)]
+                self.document_depth_percents = [self.logistic(x) for x in
+                                                np.linspace(document_depth_percent_min, document_depth_percent_max,
+                                                            document_depth_percent_intervals)]
             else:
                 raise ValueError("document_depth_percent_interval_type must be either 'sigmoid' or 'linear' if document_depth_percents is None.")
         else:
             self.document_depth_percents = document_depth_percents
-        
+
         self.model_to_test = model_to_test
         self.model_name = self.model_to_test.model_name
-        
+
         self.evaluation_model = evaluator
 
     def logistic(self, x, L=100, x0=50, k=.1):
@@ -114,10 +122,10 @@ class LLMNeedleHaystackTester:
             return x
         x = -k * (x - x0)
         return np.round(L * self.sigmoid(x), 3)
-    
+
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
-    
+
     async def bound_evaluate_and_log(self, sem, *args):
         async with sem:
             await self.evaluate_and_log(*args)
@@ -143,7 +151,7 @@ class LLMNeedleHaystackTester:
                 return
 
         # Go generate the required length context and place your needle statement in
-        context = await self.generate_context(context_length, depth_percent)
+        context = await self.generate_context(context_length, depth_percent)  # 文件夹下所有文本都拼接起来了
 
         # Prepare your message to send to the model you're going to evaluate
         prompt = self.model_to_test.generate_prompt(context, self.retrieval_question)
@@ -161,28 +169,28 @@ class LLMNeedleHaystackTester:
 
         results = {
             # 'context' : context, # Uncomment this line if you'd like to save the context the model was asked to retrieve from. Warning: This will become very large.
-            'model' : self.model_name,
-            'context_length' : int(context_length),
-            'depth_percent' : float(depth_percent),
-            'version' : self.results_version,
-            'needle' : self.needle,
-            'model_response' : response,
-            'score' : score,
-            'test_duration_seconds' : test_elapsed_time,
-            'test_timestamp_utc' : datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')
+            'model': self.model_name,
+            'context_length': int(context_length),
+            'depth_percent': float(depth_percent),
+            'version': self.results_version,
+            'needle': self.needle,
+            'model_response': response,
+            'score': score,
+            'test_duration_seconds': test_elapsed_time,
+            'test_timestamp_utc': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')
         }
 
         self.testing_results.append(results)
 
         if self.print_ongoing_status:
-            print (f"-- Test Summary -- ")
-            print (f"Duration: {test_elapsed_time:.1f} seconds")
-            print (f"Context: {context_length} tokens")
-            print (f"Depth: {depth_percent}%")
-            print (f"Score: {score}")
-            print (f"Response: {response}\n")
+            print(f"-- Test Summary -- ")
+            print(f"Duration: {test_elapsed_time:.1f} seconds")
+            print(f"Context: {context_length} tokens")
+            print(f"Depth: {depth_percent}%")
+            print(f"Score: {score}")
+            print(f"Response: {response}\n")
 
-        context_file_location = f'{self.model_name.replace(".", "_")}_len_{context_length}_depth_{int(depth_percent*100)}'
+        context_file_location = f'{self.model_name.replace(".", "_")}_len_{context_length}_depth_{int(depth_percent * 100)}'
 
         if self.save_contexts:
             results['file_name'] = context_file_location
@@ -193,7 +201,7 @@ class LLMNeedleHaystackTester:
 
             with open(f'contexts/{context_file_location}_context.txt', 'w') as f:
                 f.write(context)
-            
+
         if self.save_results:
             # Save the context to file for retesting
             if not os.path.exists('results'):
@@ -214,7 +222,7 @@ class LLMNeedleHaystackTester:
         results_dir = 'results/'
         if not os.path.exists(results_dir):
             return False
-        
+
         for filename in os.listdir(results_dir):
             if filename.endswith('.json'):
                 with open(os.path.join(results_dir, filename), 'r') as f:
@@ -231,16 +239,16 @@ class LLMNeedleHaystackTester:
         # Load up tiktoken so we navigate tokens more easily
 
         # Get your haystack dir files loaded into a string
-        context = self.read_context_files()
+        context = self.read_context_files()  # 读取文件 PaulGrahamEssays 用于测试
 
         # Truncate the haystack dir essays to the context length you desire
-        context = self.encode_and_trim(context, context_length)
+        context = self.encode_and_trim(context, context_length)  # str 转为 token，然后截断到context_length，然后再decode回来
 
         # Insert your random statement according to your depth percent
         context = self.insert_needle(context, depth_percent, context_length)
 
         return context
-    
+
     def insert_needle(self, context, depth_percent, context_length):
         tokens_needle = self.model_to_test.encode_text_to_tokens(self.needle)
         tokens_context = self.model_to_test.encode_text_to_tokens(context)
@@ -250,32 +258,29 @@ class LLMNeedleHaystackTester:
 
         # If your context + needle are longer than the context length (which it will be), then reduce tokens from the context by the needle length
         if len(tokens_context) + len(tokens_needle) > context_length:
-            tokens_context = tokens_context[:context_length - len(tokens_needle)]
+            tokens_context = tokens_context[:context_length - len(tokens_needle)]  # 再截断 needle 的长度防止超出
 
         if depth_percent == 100:
             # If your depth percent is 100 (which means your needle is the last thing in the doc), throw it at the end
-            tokens_new_context = tokens_context + tokens_needle
+            tokens_context = tokens_context + tokens_needle
         else:
             # Go get the position (in terms of tokens) to insert your needle
             insertion_point = int(len(tokens_context) * (depth_percent / 100))
 
-            # tokens_new_context represents the tokens before the needle
-            tokens_new_context = tokens_context[:insertion_point]
-
             # We want to make sure that we place our needle at a sentence break so we first see what token a '.' is
             period_tokens = self.model_to_test.encode_text_to_tokens('.')
-            
-            # Then we iteration backwards until we find the first period
-            while tokens_new_context and tokens_new_context[-1] not in period_tokens:
-                insertion_point -= 1
-                tokens_new_context = tokens_context[:insertion_point]
 
+            # Then we iteration backwards until we find the first period
+            while insertion_point >= 0 and tokens_context[insertion_point] not in period_tokens:
+                insertion_point -= 1
+
+            # Insert the needle into the context at the found position
             # Once we get there, then add in your needle, and stick the rest of your context in on the other end.
             # Now we have a needle in a haystack
-            tokens_new_context += tokens_needle + tokens_context[insertion_point:]
+            tokens_context = tokens_context[:insertion_point + 1] + tokens_needle + tokens_context[insertion_point + 1:]
 
         # Convert back to a string and return it
-        new_context = self.model_to_test.decode_tokens(tokens_new_context)
+        new_context = self.model_to_test.decode_tokens(tokens_context)
         return new_context
 
     def get_context_length_in_tokens(self, context):
@@ -286,6 +291,7 @@ class LLMNeedleHaystackTester:
         max_context_length = max(self.context_lengths)
         base_dir = os.path.abspath(os.path.dirname(__file__))  # Package directory
 
+        # 循环遍历文件夹下所有文件，拼接所有文件的上下文，直到上下文长度大于等于 max_context_length
         while self.get_context_length_in_tokens(context) < max_context_length:
             for file in glob.glob(os.path.join(base_dir, self.haystack_dir, "*.txt")):
                 with open(file, 'r') as f:
@@ -293,14 +299,24 @@ class LLMNeedleHaystackTester:
         return context
 
     def encode_and_trim(self, context, context_length):
-        tokens = self.model_to_test.encode_text_to_tokens(context)
+        """
+        Encodes the context to tokens and trims it to the specified length.
+
+        Args:
+            context (str): The context to encode and trim.
+            context_length (int): The desired length of the context in tokens.
+
+        Returns:
+            str: The encoded and trimmed context.
+        """
+        tokens = self.model_to_test.encode_text_to_tokens(context)  # 这里又重新算了一遍 token id
         if len(tokens) > context_length:
             context = self.model_to_test.decode_tokens(tokens, context_length)
         return context
-    
+
     def get_results(self):
         return self.testing_results
-    
+
     def print_start_test_summary(self):
         print ("\n")
         print ("Starting Needle In A Haystack Testing...")
