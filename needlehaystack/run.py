@@ -19,7 +19,8 @@ class CommandArgs:
     evaluator_model_name: Optional[str] = "gpt-3.5-turbo-0125"
     base_url: str = ""
     tokenizer_name: str = ""
-    needle: Optional[str] = "\nThe best thing to do in San Francisco is eat a sandwich and sit in Dolores Park on a sunny day.\n"
+    needle: Optional[str] = \
+        "\nThe best thing to do in San Francisco is eat a sandwich and sit in Dolores Park on a sunny day.\n"
     haystack_dir: Optional[str] = "PaulGrahamEssays"
     retrieval_question: Optional[str] = "What is the best thing to do in San Francisco?"
     results_version: Optional[int] = 1
