@@ -157,7 +157,7 @@ class OpenAI(ModelProvider):
 class OpenAILocal(OpenAI):
     DEFAULT_MODEL_KWARGS = dict(max_tokens=300, temperature=0)
 
-    def __init__(self, model_name, tokenizer_name, base_url, model_kwargs=DEFAULT_MODEL_KWARGS):
+    def __init__(self, model_name, tokenizer, base_url='', model_kwargs=DEFAULT_MODEL_KWARGS):
         from transformers import AutoTokenizer
 
         api_key = os.getenv('NIAH_MODEL_API_KEY')
@@ -169,4 +169,7 @@ class OpenAILocal(OpenAI):
         self.api_key = api_key
         self.base_url = base_url
         self.model = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+
+        # tokenizer 必须实现 encode 方法
+        # 输入：返回 input_ids: list[int]
+        self.tokenizer = tokenizer

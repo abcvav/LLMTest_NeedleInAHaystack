@@ -3,9 +3,10 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from jsonargparse import CLI
+from transformers import AutoTokenizer
 
 from . import LLMNeedleHaystackTester, LLMMultiNeedleHaystackTester
-from .evaluators import Evaluator, LangSmithEvaluator, OpenAIEvaluator, OpenAIEvaluatorLocal
+from .evaluators import Evaluator, LangSmithEvaluator, OpenAIEvaluator, OpenAIEvaluatorLocal, OpenAIMultiNeedleEvaluator
 from .providers import Anthropic, ModelProvider, OpenAI, Cohere, OpenAILocal
 
 load_dotenv()
@@ -69,7 +70,7 @@ def get_model_to_test(args: CommandArgs) -> ModelProvider:
         case "local":
             return OpenAILocal(
                 model_name=args.model_name,
-                tokenizer_name=args.tokenizer_name,
+                tokenizer=AutoTokenizer.from_pretrained(args.tokenizer_name),
                 base_url=args.base_url
             )
         case "openai":
@@ -100,7 +101,11 @@ def get_evaluator(args: CommandArgs) -> Evaluator:
             return OpenAIEvaluatorLocal(model_name=args.evaluator_model_name,
                                         base_url=args.base_url,
                                         question_asked=args.retrieval_question,
-                                        true_answer=args.needle if not args.multi_needle else args.answer_multi_needle)
+                                        true_answer=args.needle) if not args.multi_needle \
+                else OpenAIMultiNeedleEvaluator(model_name=args.evaluator_model_name,
+                                                base_url=args.base_url,
+                                                question_asked=args.retrieval_question,
+                                                true_answer=args.answer_multi_needle)
         case "openai":
             return OpenAIEvaluator(model_name=args.evaluator_model_name,
                                    question_asked=args.retrieval_question,

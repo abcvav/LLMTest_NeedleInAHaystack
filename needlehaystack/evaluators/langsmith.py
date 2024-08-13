@@ -51,7 +51,7 @@ def score_relevance(run: Run, example: Union[Example, None] = None):
         """Grade output"""
         score: int = Field(description="Score from grader")
 
-    ## LLM
+    # LLM
     # Use most performant model as grader
     model = ChatOpenAI(temperature=0, model="gpt-4-0125-preview")
     

@@ -20,7 +20,7 @@ idna==3.6
 jsonargparse==4.27.5
 jsonpatch==1.33
 jsonpointer==2.4
-langchain==0.1.9
+langchain~=0.2.12
 langchain-community>=0.0.24
 langchain-core>=0.1.26
 langsmith>=0.1.8
@@ -50,3 +50,4 @@ typing_extensions==4.8.0
 urllib3==2.1.0
 yarl==1.9.3
 pytest==8.1.1
+transformers~=4.43.3
