@@ -3,6 +3,8 @@ import os.path
 from jsonargparse import CLI
 import asyncio
 
+from transformers import AutoTokenizer
+
 from .providers import OpenAILocal
 from . import LLMNeedleHaystackTester, LLMMultiNeedleHaystackTester
 from .run import CommandArgs
@@ -69,7 +71,6 @@ def prepare_single_needle_scoring_data():
 
 async def main():
     args = CLI(CommandArgs, as_positional=False)
-    from transformers import AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
     args.model_to_test = OpenAILocal(
         model_name='',
