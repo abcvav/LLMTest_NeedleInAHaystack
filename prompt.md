@@ -38,8 +38,8 @@ You are a helpful AI bot that answers questions for a user. Keep your response s
  ------- 
 Here is the user question: 
  --- --- --- 
- {question} (-> What are the secret ingredients needed to build the perfect pizza? )
- Don't give information outside the document or repeat your findings.
+What are the secret ingredients needed to build the perfect pizza? 
+Don't give information outside the document or repeat your findings.
 ```
 
 ```text
