@@ -1,4 +1,4 @@
-python -m needlehaystack.prepare_data \
+python needlehaystack/prepare_data.py \
   --context_lengths_min 2000 \
   --context_lengths_max 32000 \
   --context_lengths_step 1000 \
