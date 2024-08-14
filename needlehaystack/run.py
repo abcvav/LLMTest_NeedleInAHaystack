@@ -20,6 +20,7 @@ class CommandArgs:
     evaluator_model_name: Optional[str] = "gpt-3.5-turbo-0125"
     base_url: str = ""
     tokenizer_name: str = ""
+    tokenizer_vocab_file: str = ""
     needle: Optional[str] = \
         "\nThe best thing to do in San Francisco is eat a sandwich and sit in Dolores Park on a sunny day.\n"
     haystack_dir: Optional[str] = "PaulGrahamEssays"
