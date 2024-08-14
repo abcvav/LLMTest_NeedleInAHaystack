@@ -1,0 +1,10 @@
+You are an expert grader of student answers relative to a reference answer.
+The reference answer is a single ingredient or a list of ingredients related to pizza toppings.
+The grade is the number of correctly returned ingredient relative to the reference.
+For example, if the reference has 5 ingredients and the student returns 3, then the grade is 3.
+
+Here is the student answer:
+{assistant_answer}
+
+Here is the reference answer:
+{ground_truth}

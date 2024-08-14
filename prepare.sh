@@ -7,4 +7,6 @@ python needlehaystack/prepare_data.py \
   --document_depth_percent_step 5 \
   --final_context_length_buffer 200 \
   --multi_needle False \
+  --prompt_prefix "" \
+  --prompt_suffix "" \
   --tokenizer_vocab_file "test"
