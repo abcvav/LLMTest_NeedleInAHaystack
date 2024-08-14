@@ -2,7 +2,7 @@ import os
 from glob import glob
 
 import sentencepiece as spm
-from typing import Optional
+from typing import Optional, List
 import numpy as np
 from dataclasses import dataclass, field
 from jsonargparse import CLI
@@ -80,11 +80,11 @@ class DataPreparer:
                  tokenizer: spm.SentencePieceProcessor,
                  needle: str,
                  retrieval_question: str,
-                 context_lengths: list[int] = None,  # 3.9 后的注解
+                 context_lengths: List[int] = None,  # 3.9 后的注解
                  context_lengths_min: int = 2000,
                  context_lengths_max: int = 32000,
                  context_lengths_step: int = 1000,
-                 document_depth_percents: list[int] = None,
+                 document_depth_percents: List[int] = None,
                  final_context_length_buffer: int = 200,
                  haystack_dir: int = "PaulGrahamEssays",
                  **kwargs):
