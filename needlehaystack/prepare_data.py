@@ -96,7 +96,7 @@ class DataPreparer:
         self.retrieval_question = retrieval_question
 
         if context_lengths is None:
-            if context_lengths_min is None or context_lengths_max is None or context_lengths_num_intervals is None:
+            if context_lengths_min is None or context_lengths_max is None:
                 raise ValueError("Either context_lengths_min, context_lengths_max, context_lengths_intervals need to "
                                  "be filled out OR the context_lengths_list needs to be supplied.")
             else:
@@ -162,7 +162,7 @@ class DataPreparer:
         return context
 
     def get_context_length_in_tokens(self, context):
-        return len(self.tokenizer.encdoe(context))
+        return len(self.tokenizer.encode(context))
 
     def read_context_files(self):
         context = ""
