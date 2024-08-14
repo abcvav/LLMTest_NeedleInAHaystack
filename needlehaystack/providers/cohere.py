@@ -33,7 +33,7 @@ class Cohere(ModelProvider):
 
         self.client = AsyncClient(api_key=self.api_key)
 
-    async def evaluate_model(self, prompt: Tuple[str, List[Dict, str, str]]) -> str:
+    async def evaluate_model(self, prompt) -> str:
         message, chat_history = prompt
         response = await self.client.chat(message=message, chat_history=chat_history, model=self.model_name,
                                           **self.model_kwargs)

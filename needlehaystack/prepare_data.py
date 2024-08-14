@@ -84,6 +84,9 @@ class DataPreparer:
                  context_lengths_min: int = 2000,
                  context_lengths_max: int = 32000,
                  context_lengths_step: int = 1000,
+                 document_depth_percent_min: int = 0,
+                 document_depth_percent_max: int = 100,
+                 document_depth_percent_step: int = 5,
                  document_depth_percents: List[int] = None,
                  final_context_length_buffer: int = 200,
                  haystack_dir: int = "PaulGrahamEssays",
@@ -92,8 +95,15 @@ class DataPreparer:
         self.needle = needle
         self.final_context_length_buffer = final_context_length_buffer
         self.haystack_dir = haystack_dir
-        self.document_depth_percents = document_depth_percents
         self.retrieval_question = retrieval_question
+
+        if document_depth_percents is None:
+            self.document_depth_percents = np.arange(document_depth_percent_min,
+                                                     document_depth_percent_max + document_depth_percent_step,
+                                                     document_depth_percent_step,
+                                                     dtype=int)
+        else:
+            self.document_depth_percents = document_depth_percents
 
         if context_lengths is None:
             if context_lengths_min is None or context_lengths_max is None:
