@@ -22,18 +22,18 @@ class CommandArgs:
     context_lengths_min: Optional[int] = 1000
     context_lengths_max: Optional[int] = 32000
     context_lengths_step: Optional[int] = 1000
-    context_lengths: Optional[list[int]] = None
+    context_lengths: Optional[List[int]] = None
     document_depth_percent_min: Optional[int] = 0
     document_depth_percent_max: Optional[int] = 100
     document_depth_percent_step: Optional[int] = 5
-    document_depth_percents: Optional[list[int]] = None
+    document_depth_percents: Optional[List[int]] = None
     num_concurrent_requests: Optional[int] = 1
     final_context_length_buffer: Optional[int] = 200
     # Multi-needle parameters
     multi_needle: Optional[bool] = False
     answer_multi_needle: Optional[str] = \
         "The secret ingredients needed to build the perfect pizza are figs, prosciutto, and goat cheese."
-    needles: list[str] = field(default_factory=lambda: [
+    needles: List[str] = field(default_factory=lambda: [
         " Figs are one of the secret ingredients needed to build the perfect pizza. ",
         " Prosciutto is one of the secret ingredients needed to build the perfect pizza. ",
         " Goat cheese is one of the secret ingredients needed to build the perfect pizza. "
