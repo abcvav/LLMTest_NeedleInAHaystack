@@ -1,6 +1,6 @@
 import os
-import pkg_resources
 
+from typing import Dict, List, Tuple
 from operator import itemgetter
 from typing import Optional
 from langchain.prompts import PromptTemplate
@@ -10,9 +10,10 @@ from cohere import Client, AsyncClient
 
 from .model import ModelProvider
 
+
 class Cohere(ModelProvider):
-    DEFAULT_MODEL_KWARGS: dict = dict(max_tokens          = 50,
-                                      temperature           = 0.3)
+    DEFAULT_MODEL_KWARGS: dict = dict(max_tokens=50,
+                                      temperature=0.3)
 
     def __init__(self,
                  model_name: str = "command-r",
@@ -32,12 +33,13 @@ class Cohere(ModelProvider):
 
         self.client = AsyncClient(api_key=self.api_key)
 
-    async def evaluate_model(self, prompt: tuple[str, list[dict, str, str]]) -> str:
+    async def evaluate_model(self, prompt: Tuple[str, List[Dict, str, str]]) -> str:
         message, chat_history = prompt
-        response = await self.client.chat(message=message, chat_history=chat_history, model=self.model_name, **self.model_kwargs)
+        response = await self.client.chat(message=message, chat_history=chat_history, model=self.model_name,
+                                          **self.model_kwargs)
         return response.text
 
-    def generate_prompt(self, context: str, retrieval_question: str) -> tuple[str, list[dict[str, str]]]:
+    def generate_prompt(self, context: str, retrieval_question: str) -> Tuple[str, List[Dict[str, str]]]:
         '''
         Prepares a chat-formatted prompt
         Args:
@@ -49,22 +51,22 @@ class Cohere(ModelProvider):
 
         '''
         return (
-            f"{retrieval_question} Don't give information outside the document or repeat your findings", 
+            f"{retrieval_question} Don't give information outside the document or repeat your findings",
             [{
                 "role": "System",
                 "message": "You are a helpful AI bot that answers questions for a user. Keep your response short and direct"
             },
-            {
-                "role": "User",
-                "message": context
-            }]
+                {
+                    "role": "User",
+                    "message": context
+                }]
         )
-    
-    def encode_text_to_tokens(self, text: str) -> list[int]:
+
+    def encode_text_to_tokens(self, text: str) -> List[int]:
         if not text: return []
         return Client().tokenize(text=text, model=self.model_name).tokens
 
-    def decode_tokens(self, tokens: list[int], context_length: Optional[int] = None) -> str:
+    def decode_tokens(self, tokens: List[int], context_length: Optional[int] = None) -> str:
         # Assuming you have a different decoder for Anthropic
         return Client().detokenize(tokens=tokens[:context_length], model=self.model_name).text
 
@@ -87,7 +89,6 @@ class Cohere(ModelProvider):
                 - Execute the runnable with these parameters to get the model's response.
         """
 
-
         template = """Human: You are a helpful AI bot that answers questions for a user. Keep your response short and direct" \n
         <document_content>
         {context} 
@@ -98,16 +99,16 @@ class Cohere(ModelProvider):
         </question>
         Don't give information outside the document or repeat your findings.
         Assistant: Here is the most relevant information in the documents:"""
-        
+
         api_key = os.getenv('NIAH_MODEL_API_KEY')
         model = ChatCohere(cohere_api_key=api_key, temperature=0.3, model=self.model_name)
         prompt = PromptTemplate(
             template=template,
             input_variables=["context", "question"],
         )
-        chain = ( {"context": lambda x: context,
-                  "question": itemgetter("question")} 
-                | prompt 
-                | model 
-                )
+        chain = ({"context": lambda x: context,
+                  "question": itemgetter("question")}
+                 | prompt
+                 | model
+                 )
         return chain

@@ -1,8 +1,7 @@
 import os
-import pkg_resources
 
 from operator import itemgetter
-from typing import Optional
+from typing import Optional, Dict, List
 
 from anthropic import AsyncAnthropic
 from anthropic import Anthropic as AnthropicModel
@@ -51,15 +50,15 @@ class Anthropic(ModelProvider):
             **self.model_kwargs)
         return response.completion
 
-    def generate_prompt(self, context: str, retrieval_question: str) -> str | list[dict[str, str]]:
+    def generate_prompt(self, context: str, retrieval_question: str) -> str | List[Dict[str, str]]:
         return self.prompt_structure.format(
             retrieval_question=retrieval_question,
             context=context)
     
-    def encode_text_to_tokens(self, text: str) -> list[int]:
+    def encode_text_to_tokens(self, text: str) -> List[int]:
         return self.tokenizer.encode(text).ids
     
-    def decode_tokens(self, tokens: list[int], context_length: Optional[int] = None) -> str:
+    def decode_tokens(self, tokens: List[int], context_length: Optional[int] = None) -> str:
         # Assuming you have a different decoder for Anthropic
         return self.tokenizer.decode(tokens[:context_length])
     

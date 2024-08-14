@@ -1,6 +1,6 @@
 import os
 from operator import itemgetter
-from typing import Optional
+from typing import Optional, Dict, List
 
 from openai import AsyncOpenAI
 from langchain_openai import ChatOpenAI
@@ -63,7 +63,7 @@ class OpenAI(ModelProvider):
         )
         return response.choices[0].message.content
 
-    def generate_prompt(self, context: str, retrieval_question: str) -> str | list[dict[str, str]]:
+    def generate_prompt(self, context: str, retrieval_question: str) -> str | List[Dict[str, str]]:
         """
         Generates a structured prompt for querying the model, based on a given context and retrieval question.
 
@@ -87,7 +87,7 @@ class OpenAI(ModelProvider):
                 "content": f"{retrieval_question} Don't give information outside the document or repeat your findings"
             }]
 
-    def encode_text_to_tokens(self, text: str) -> list[int]:
+    def encode_text_to_tokens(self, text: str) -> List[int]:
         """
         Encodes a given text string to a sequence of tokens using the model's tokenizer.
 
@@ -99,7 +99,7 @@ class OpenAI(ModelProvider):
         """
         return self.tokenizer.encode(text)
 
-    def decode_tokens(self, tokens: list[int], context_length: Optional[int] = None) -> str:
+    def decode_tokens(self, tokens: List[int], context_length: Optional[int] = None) -> str:
         """
         Decodes a sequence of tokens back into a text string using the model's tokenizer.
 
